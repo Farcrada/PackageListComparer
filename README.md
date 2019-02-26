@@ -15,6 +15,8 @@ This takes two lists of apt packages from a system and compares versions.
     either: "_one", or: "_two" respectively
 
 # Usage:
+    -h      Shows this page/text
+    
     [-dc] --firstfile <aptlist_one> --secondfile <aptlist_two>
     
     -d:     Show every package even if there is no difference.
