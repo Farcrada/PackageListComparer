@@ -65,7 +65,7 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv,'hdc',['firstfile=','secondfile='])
     except getopt.GetoptError:
-        print ("Usage: -f <aptlist_one> -s <aptlist_two>")
+        print ("You used scuffed commands: Use '-h' for help.")
         sys.exit(2)
     ## End of init
     ## Begin of Args
