@@ -85,6 +85,8 @@ def main(argv):
     either: "_one", or: "_two" respectively
 
 {bcolors.HEADER}Usage:{bcolors.END}
+    -h      Shows this page/text
+    
     [-dc] --firstfile <aptlist_one> --secondfile <aptlist_two>
     
     -d:     Show every package even if there is no difference.
