@@ -17,9 +17,12 @@ And then execute with the files as arguments.
 # Usage:
     -h      Shows this page/text
     
-    [-dc] --firstfile <aptlist_one> --secondfile <aptlist_two>
+    [-dmc] --firstfile <aptlist_one> --secondfile <aptlist_two>
     
     -d:     Show every package even if there is no difference.
+    
+    -m:     Show missing packages. This can also mean missing
+            packages from the target system and not the host.
             
     -c:     No colors (for dumping to a file). This changes the
             make-up of the file by putting the versions on a new
