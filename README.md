@@ -30,4 +30,4 @@ And then execute with the files as arguments.
 
 If you want only the missing files; add: ` | grep MISSING` to the command, though, do read the description.
 
-If you want to save the results to a file you can use the output symbol: `>` or append output: `>>` after the command. You can use this in combination with `grep` for finer details, though make sure you use `-c` or your file will not only be massive, it's also rather unreadable.
+If you want to save the results to a file you can use the output symbol: `>` or append output: `>>` after the command. You can use this in combination with `grep` for finer details, though make sure you use `-c` or your file will not only be massive, it'll also be rather unreadable.
