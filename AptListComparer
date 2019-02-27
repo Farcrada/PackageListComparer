@@ -98,9 +98,15 @@ def main(argv):
     -c:     No colors (for dumping to a file). This changes the
             make-up of the file by putting the versions on a new
             line and indented respectively.
-            
-    If you want to save the results to a file you can use the
-    output symbol: ">" or append output: ">>" after the command
+
+If you want only the missing files; add: ' | grep MISSING' to the
+command, though, do read the description of '-m'.
+
+If you want to save the results to a file you can use the output
+symbol: '>' or append output: '>>' after the command. You can use
+this in combination with the 'grep'-command for finer details,
+though make sure you use -c or your file will not only be massive,
+it'll also be rather unreadable.
 """)
             sys.exit()
             
