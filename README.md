@@ -14,7 +14,7 @@ And then execute with the files as arguments.
 # Usage:
     -h      Shows this page/text
     
-    [-dmc] --firstfile <aptlist_one> --secondfile <aptlist_two>
+    [-dmc] --firstfile APTLIST_ONE --secondfile APTLIST_TWO
     
     -d:     Show every package even if there is no difference.
     
