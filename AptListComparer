@@ -45,6 +45,7 @@ def openAndStripFile(file):
 #Static variables
 class static:
     SHOWDIFF = False
+    SHOWMISS = False
     
     def NOCOLORS():
         bcolors.HEADER = ''
@@ -63,7 +64,7 @@ def main(argv):
     
     ## Begin if init
     try:
-        opts, args = getopt.getopt(argv,'hdc',['firstfile=','secondfile='])
+        opts, args = getopt.getopt(argv,'hdmc',['firstfile=','secondfile='])
     except getopt.GetoptError:
         print ("You used scuffed commands: Use '-h' for help.")
         sys.exit(2)
@@ -90,6 +91,9 @@ def main(argv):
     [-dc] --firstfile <aptlist_one> --secondfile <aptlist_two>
     
     -d:     Show every package even if there is no difference.
+    
+    -m:     Show missing packages. This can also mean missing
+            packages from the target system and not the host.
             
     -c:     No colors (for dumping to a file). This changes the
             make-up of the file by putting the versions on a new
@@ -102,6 +106,8 @@ def main(argv):
             
         elif opt == '-d':
             static.SHOWDIFF = True
+        elif opt == '-m':
+            static.SHOWMISS = True
         elif opt == '-c':
             static.NOCOLORS()
         #Filter and strip the lists so we remove any empty entires on load.
@@ -117,10 +123,18 @@ def main(argv):
         
         #Check for an occurance
         firstitem = linefirst.split('/')[0]
+        missing, maxlen = 0, len(aptlist_two)
         for i, linesecond in enumerate(aptlist_two):
             if  firstitem in linesecond.split('/')[0]:
                 instance, occurance = [ i, True ]
                 break
+            missing += 1
+            
+            #Since we know that if there is no occurance it's completely
+            #missing, we can safely check against mac length.
+            #print (str(missing) + " | " + str(maxlen))
+            if missing == maxlen and static.SHOWMISS:
+                print(f"{bcolors.FAIL}MISSING:{bcolors.END} {linefirst.split(' ')[0]}")
         
         if occurance:
             linefirstsplit = linefirst.split(' ')
