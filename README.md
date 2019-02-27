@@ -1,6 +1,3 @@
-# AptListComparer
-This takes two lists of apt packages from a system and compares versions.
-
 # About:
 This is meant to compare two lists of installed packages and print the version differences. The `firstfile` is taken as a control and assumed as the host and will be compared to the `secondfile`, a.k.a. the target. Difference is shown as yellow and green means it is similar to the target version. Red means it's missing from either system.
 
