@@ -7,7 +7,7 @@ Run this command:
     
 On your host system and on the target system, append with either: "_one", or: "_two" respectively
 
-Download AptListComparer from above (click it -> "RAW" -> Right click the page -> "Save page as...");
+Clone AptListComparer via the button above (or click it -> "RAW" -> Right click the page -> "Save page as...");
 `chmod +x AptListComparer`
 And then execute with the files as arguments.
 
