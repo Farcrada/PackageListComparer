@@ -11,6 +11,47 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+# Print iterations progress Courtesy of StackOverflow: https://stackoverflow.com/questions/3173320
+def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 25, fill = '█'):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+    """
+    if iteration > 0:
+        calculation = iteration / float(total)
+        filledLength = int(length * iteration // total)
+    else:
+        calculation = 0
+        filledLength = 0
+                       
+    percent = ("{0:." + str(decimals) + "f}").format(100 * calculation)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = '\r')
+    # Print New Line on Complete
+    if iteration == total: 
+        print()
+
+def checkChar(chartocheck, otherchar):
+    difference = 0
+    if chartocheck == otherchar:
+        color = bcolors.OKGREEN
+    elif not chartocheck and not static.REMCOLOR:
+        chartocheck = otherchar
+        color = bcolors.FAIL
+        difference = 1
+    else:
+        difference = 1
+        color = bcolors.WARNING
+    
+    return difference, f"{color}{chartocheck}{bcolors.END}"
+
 ## Original is to check if the first is original (true), or the second
 def checkBigLineWithSmallLine (first, second, original = True):
     result = ""
@@ -27,17 +68,45 @@ def checkBigLineWithSmallLine (first, second, original = True):
         result += current
     return difference, result
 
-def checkChar(chartocheck, otherchar):
-    difference = 0
-    if chartocheck == otherchar:
-        color = bcolors.OKGREEN
-    else:
-        difference = 1
-        color = bcolors.WARNING
-    return difference, f"{color}{chartocheck}{bcolors.END}"
+def checkForItemInList(item, list, secondpass = False) -> str:
+    check = item.split('/')[0]
+    if ' ' in check:
+        check = item.split(' ')[0]
+        
+    matching = [entry for entry in list if check in entry]
+    
+    if not matching and ((static.TARGET and not secondpass) or static.ALLMISS or secondpass):
+        return f"{item} {bcolors.OKBLUE}->{bcolors.END} {bcolors.FAIL}MISSING{bcolors.END}"
+    elif (not secondpass or static.HOST) and not static.REMDIFF:
+        linefirstsplit = item.split(' ')
+        
+        for match in matching:
+            linesecondsplit = match.split(' ')
+            
+            if check != linesecondsplit[0].split('/')[0]:
+                continue
+            
+            version = ""
+            difference = 0
+            if (len(item) > len(match)):
+                difference, version = checkBigLineWithSmallLine(linefirstsplit[1], linesecondsplit[1])
+            else:
+                difference, version = checkBigLineWithSmallLine(linesecondsplit[1], linefirstsplit[1], False)
+            
+            if static.HOST:
+                result = f"{linefirstsplit[0]} {bcolors.OKBLUE}->{bcolors.END} {bcolors.HEADER}{linesecondsplit[1]}{bcolors.END} {bcolors.OKBLUE}->{bcolors.END} {version}"
+            else:
+                result = f"{linefirstsplit[0]} {bcolors.OKBLUE}->{bcolors.END} {version} {bcolors.OKBLUE}->{bcolors.END} {bcolors.FAIL}{linesecondsplit[1]}{bcolors.END}"
+            
+            if static.SHOWDIFF:
+                return result
+            elif difference > 0:
+                return result
+    return ""
 
-def openAndStripFile(file):
-    result = list(filter(None, [x.strip() for x in open(file, 'r').readlines()]))
+def openAndStripFile(file):             
+    result = [x.strip() for x in open(file, 'r').readlines() if x]
+        
     if "Listing..." in result[0]:
         del result[0]
     return result
@@ -45,7 +114,14 @@ def openAndStripFile(file):
 #Static variables
 class static:
     SHOWDIFF = False
-    SHOWMISS = False
+    REMDIFF = False
+    SECONDLIST = False
+    CHECKFILE = False
+    PACKAGES = False
+    TARGET = False
+    HOST = False
+    ALLMISS = False
+    REMCOLOR = False
     
     def NOCOLORS():
         bcolors.HEADER = ''
@@ -56,6 +132,7 @@ class static:
         bcolors.END = ''
         bcolors.BOLD = ''
         bcolors.UNDERLINE = ''
+        static.REMCOLOR = True
 
 def main(argv):
     ## Variables
@@ -64,100 +141,143 @@ def main(argv):
     
     ## Begin if init
     try:
-        opts, args = getopt.getopt(argv,'hdmc',['firstfile=','secondfile='])
+        opts, args = getopt.getopt(argv,'dncthap:',['help','firstfile=','secondfile=','checkfile='])
     except getopt.GetoptError:
-        print ("You used scuffed commands: Use '-h' for help.")
+        print ("You used scuffed commands: Use '--help' for help.")
         sys.exit(2)
     ## End of init
     ## Begin of Args
     for opt, arg in opts:
-        if opt == '-h':
-            print (f"""{bcolors.HEADER}About:{bcolors.END}
+        if opt == '--help':
+            sys.exit(f"""{bcolors.HEADER}About:{bcolors.END}
     This script is meant to compare two lists of installed
     packages and print the differences. The 'firstfile' is
-    taken as a control and will be compared to the 'secondfile'.
-    Missing is shown as red and difference is shown as yellow
+    taken as a control (host) and will be compared to the
+    'secondfile' (target).
+    Missing is shown as red and difference is shown as yellow.
 
 {bcolors.HEADER}Prep-work:{bcolors.END}
     Run this command:
         apt --installed list > aptlist
     
-    On your host system and on the target system, append with
-    either: "_one", or: "_two" respectively
+    On your host and target system, append with either: "_one",
+    or: "_two" respectively.
 
 {bcolors.HEADER}Usage:{bcolors.END}
-    -h      Shows this page/text
+    --help  Shows this page/text and exits
     
-    [-dc] --firstfile <aptlist_one> --secondfile <aptlist_two>
+[-dnctha] --firstfile APTLIST_ONE [--secondfile APTLIST_TWO | --checkfile PACKAGEFILE | -p "PACKAGE VERSION"] ]
     
     -d:     Show every package even if there is no difference.
     
-    -m:     Show missing packages. This can also mean missing
-            packages from the target system and not the host.
+    -n:     Only show missing, no differences.
             
-    -c:     No colors (for dumping to a file). This changes the
-            make-up of the file by putting the versions on a new
-            line and indented respectively.
-
-If you want only the missing files; add: ' | grep MISSING' to the
-command, though, do read the description of '-m'.
-
-If you want to save the results to a file you can use the output
-symbol: '>' or append output: '>>' after the command. You can use
-this in combination with the 'grep'-command for finer details,
-though make sure you use -c or your file will not only be massive,
-it'll also be rather unreadable.
+    -c:     No colors. This changes the make-up of the output by
+            putting the versions on a new line and indented
+            respectively; usefull for dumping to a file.
+    
+    -t:     Show target system's missing packages.
+    
+    -h:     Show host system's missing packages.
+    
+    -a:     Show ALL missing packages from either system.
+    
+    -p "PACKAGE VERSION":
+            Check for specific package via commandline. This also
+            assumes -h so you'll be prompted if the host is missing
+            a package.
+                Note: multiple if done like so:
+                -p "PACKAGE VERSION;PACKAGE VERSION;PACKAGE VERSION"
+    
+    --checkfile
+            Check for specific packages via file. This also assumes
+            -h so you'll be prompted if the host is missing a
+            package.
+                Note: seperate packages in the file by a newline.
+            
+{bcolors.HEADER}Addendum:{bcolors.END}
+    If you want to save the results to a file you can use the
+    output symbol: ">" or append output: ">>" after the command
 """)
-            sys.exit()
             
+        elif opt == '-n':
+            if not static.SHOWDIFF:
+                static.REMDIFF = True
+            else:
+                sys.exit(f"""{bcolors.FAIL}You cannot use '-n' in combination with: '-d'.""")
         elif opt == '-d':
-            static.SHOWDIFF = True
-        elif opt == '-m':
-            static.SHOWMISS = True
+            if not static.REMDIFF:
+                static.SHOWDIFF = True
+            else:
+                sys.exit(f"""{bcolors.FAIL}You cannot use '-d' in combination with: '-n'.""")
         elif opt == '-c':
             static.NOCOLORS()
-        #Filter and strip the lists so we remove any empty entires on load.
+        elif opt == '-t':
+            if not static.HOST and not static.ALLMISS and not static.CHECKFILE:
+                static.TARGET = True
+            else:
+                sys.exit(f"""{bcolors.FAIL}You cannot use '-t' in combination with: '-h' or '-a'.
+                         You can also not use this in combination with '-p' or '--checkfile'.{bcolors.END}""")
+        elif opt == '-h':
+            if not static.ALLMISS and not static.TARGET:
+                static.HOST = True
+            else:
+                sys.exit(f"{bcolors.FAIL}You cannot use '-h' in combination with: '-t' or '-a' together.{bcolors.END}")
+        elif opt == '-a':
+            if not static.HOST and not static.TARGET:
+                static.ALLMISS = True
+            else:
+                sys.exit(f"""{bcolors.FAIL}You cannot use '-a' in combination with: '-t' or '-h'.
+                         You can also not use this in combination with '-p' or '--checkfile'.{bcolors.END}""")
+        elif opt in ('-p'):
+            if not static.CHECKFILE and not static.SECONDLIST:
+                aptlist_two = arg.split(';')
+                static.PACKAGES = True
+                static.HOST = True
+            else:
+                sys.exit(f"{bcolors.FAIL}You cannot use '-p' in combination with: '-t', '--checkfile' or '--secondfile'.{bcolors.END}")
         elif opt in ('--firstfile'):
             aptlist_one = openAndStripFile(arg)
         elif opt in ('--secondfile'):
-            aptlist_two = openAndStripFile(arg)
+            if not static.PACKAGES and not static.CHECKFILE:
+                aptlist_two = openAndStripFile(arg)
+                static.SECONDLIST = True
+            else:
+                sys.exit(f"{bcolors.FAIL}You cannot use '--secondfile' in combination with: '-p' or '--checkfile'.{bcolors.END}")
+        elif opt in ('--checkfile'):
+            if not static.PACKAGES and not static.SECONDLIST and not static.TARGET:
+                aptlist_two = openAndStripFile(arg)
+                static.CHECKFILE = True
+                static.HOST = True
+            else:
+                sys.exit(f"{bcolors.FAIL}You cannot use '--checkfile' in combination with: '-t', '-p' or '--secondfile'.{bcolors.END}")
     ## End of Args
     
-    for linefirst in aptlist_one:
-        occurance = False
-        instance = ''
+    print(f"""{bcolors.HEADER}Calculating...{bcolors.END}""")
+    len_one = len(aptlist_one)
+    len_two = len(aptlist_two)
+    memory = []
+    
+    if not static.PACKAGES and not static.CHECKFILE and not static.HOST:
+        printProgressBar(0, len_one, prefix = 'Processing first pass:', suffix = 'Processed')
+        for i, line in enumerate(aptlist_one):
+            memory.append(checkForItemInList(line, aptlist_two))
+            printProgressBar(i + 1, len_one, prefix = 'Processing first pass:', suffix = 'Processed')
+    else:
+        print(f"""{bcolors.HEADER}Skipping first pass.{bcolors.END}""")
         
-        #Check for an occurance
-        firstitem = linefirst.split('/')[0]
-        missing, maxlen = 0, len(aptlist_two)
-        for i, linesecond in enumerate(aptlist_two):
-            if  firstitem in linesecond.split('/')[0]:
-                instance, occurance = [ i, True ]
-                break
-            missing += 1
-            
-            #Since we know that if there is no occurance it's completely
-            #missing, we can safely check against mac length.
-            #print (str(missing) + " | " + str(maxlen))
-            if missing == maxlen and static.SHOWMISS:
-                print(f"{bcolors.FAIL}MISSING:{bcolors.END} {linefirst.split(' ')[0]}")
-        
-        if occurance:
-            linefirstsplit = linefirst.split(' ')
-            linesecondsplit = linesecond.split(' ')
-            
-            version = ""
-            difference = 0
-            if (len(linefirst) > len(linesecond)):
-                difference, version = checkBigLineWithSmallLine(linefirstsplit[1], linesecondsplit[1])
-            else:
-                difference, version = checkBigLineWithSmallLine(linesecondsplit[1], linefirstsplit[1], False)
-                
-            result = f"{linefirstsplit[0]} {bcolors.OKBLUE}->{bcolors.END} {version} {bcolors.OKBLUE}->{bcolors.END} {bcolors.FAIL}{linesecondsplit[1]}{bcolors.END}"
-            if static.SHOWDIFF:
-                print(result)
-            elif difference > 0:
-                print(result)
+    if static.HOST or static.ALLMISS:
+        printProgressBar(0, len_two, prefix = 'Processing second pass:', suffix = 'Processed')
+        for i, line in enumerate(aptlist_two):
+            memory.append(checkForItemInList(line, aptlist_one, True))
+            printProgressBar(i + 1, len_two, prefix = 'Processing second pass:', suffix = 'Processed')
+    else:
+        print(f"""{bcolors.HEADER}Skipping second pass.{bcolors.END}""")
+    
+    print(f"""{bcolors.HEADER}Cleaning up...{bcolors.END}""")
+    memory = [x for x in memory if x]
+    memory.sort()
+    print(*memory, sep='\n')
 
 if __name__ == "__main__":
     main(sys.argv[1:])
