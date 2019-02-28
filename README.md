@@ -1,5 +1,9 @@
 # About:
-This is meant to compare two lists of installed packages and print the version differences. The `--firstfile` is assumed as the host, and will be shown on the left (or top when using `-c`), and `--secondfile`, `--checkfile` or `-p` will be assumed as the target, and will be shown on the right (or bottom when using `-c`). Difference is shown as yellow and missing (depending on arguments either the host or target system is shown or both if allowed) shows as red. Green means there's no difference at that position.
+Aimed at Debian based systems, though if you use the `apt` package manager, this should just work, since it's made for the apt package manager. It is meant to compare two lists of installed packages and print the version differences (see Prep-work on how to get these lists).
+
+The `--firstfile` is assumed as the host, and will be shown on the left (or top when using `-c`), and `--secondfile`, `--checkfile` or `-p` will be assumed as the target, and will be shown on the right (or bottom when using `-c`) in the terminal. 
+
+Difference is shown as yellow and missing shows as red. Green means there's no difference at that position. Missing packages will be dubbed as such at that list's version position from which list depends on (allowed) arguments) 
 
 # Prep-work:
 Run this command:
