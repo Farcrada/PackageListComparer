@@ -1,5 +1,5 @@
 # About:
-This is meant to compare two lists of installed packages and print the version differences. The `--firstfile` is assumed as the host, and will be shown on the left (or top when using `-n`), and `--secondfile`, `--checkfile` or `-p` will be assumed as the target, and will be shown on the right (or bottom when using `-n`). Difference is shown as yellow and missing (depending on arguments either the host or target system is shown or both if allowed) shows as red. Green means there's no difference at that position.
+This is meant to compare two lists of installed packages and print the version differences. The `--firstfile` is assumed as the host, and will be shown on the left (or top when using `-c`), and `--secondfile`, `--checkfile` or `-p` will be assumed as the target, and will be shown on the right (or bottom when using `-c`). Difference is shown as yellow and missing (depending on arguments either the host or target system is shown or both if allowed) shows as red. Green means there's no difference at that position.
 
 # Prep-work:
 Run this command:
