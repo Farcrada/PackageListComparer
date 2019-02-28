@@ -69,34 +69,34 @@ def checkBigLineWithSmallLine (first, second, original = True):
     return difference, result
 
 def checkForItemInList(item, list, secondpass = False) -> str:
-    check = item.split('/')[0]
-    if ' ' in check:
-        check = item.split(' ')[0]
+    itemsplit = item.split(' ')
+    check = itemsplit[0].split('/')[0]
         
     matching = [entry for entry in list if check in entry]
     
     if not matching and ((static.TARGET and not secondpass) or static.ALLMISS or secondpass):
-        return f"{item} {bcolors.OKBLUE}->{bcolors.END} {bcolors.FAIL}MISSING{bcolors.END}"
+            if static.HOST:
+                return f"{check} {bcolors.OKBLUE}->{bcolors.END} {bcolors.HEADER}{itemsplit[1]}{bcolors.END} {bcolors.OKBLUE}->{bcolors.END} {bcolors.FAIL} MISSING{bcolors.END}"
+            else:
+                return f"{check} {bcolors.OKBLUE}->{bcolors.END} {bcolors.FAIL}MISSING{bcolors.END} {bcolors.OKBLUE}->{bcolors.END} {bcolors.FAIL}{itemsplit[1]}{bcolors.END}"
     elif (not secondpass or static.HOST) and not static.REMDIFF:
-        linefirstsplit = item.split(' ')
-        
         for match in matching:
-            linesecondsplit = match.split(' ')
+            matchsplit = match.split(' ')
             
-            if check != linesecondsplit[0].split('/')[0]:
+            if check != matchsplit[0].split('/')[0]:
                 continue
             
             version = ""
             difference = 0
             if (len(item) > len(match)):
-                difference, version = checkBigLineWithSmallLine(linefirstsplit[1], linesecondsplit[1])
+                difference, version = checkBigLineWithSmallLine(itemsplit[1], matchsplit[1])
             else:
-                difference, version = checkBigLineWithSmallLine(linesecondsplit[1], linefirstsplit[1], False)
+                difference, version = checkBigLineWithSmallLine(matchsplit[1], itemsplit[1], False)
             
             if static.HOST:
-                result = f"{linefirstsplit[0]} {bcolors.OKBLUE}->{bcolors.END} {bcolors.HEADER}{linesecondsplit[1]}{bcolors.END} {bcolors.OKBLUE}->{bcolors.END} {version}"
+                result = f"{check} {bcolors.OKBLUE}->{bcolors.END} {bcolors.HEADER}{matchsplit[1]}{bcolors.END} {bcolors.OKBLUE}->{bcolors.END} {version}"
             else:
-                result = f"{linefirstsplit[0]} {bcolors.OKBLUE}->{bcolors.END} {version} {bcolors.OKBLUE}->{bcolors.END} {bcolors.FAIL}{linesecondsplit[1]}{bcolors.END}"
+                result = f"{check} {bcolors.OKBLUE}->{bcolors.END} {version} {bcolors.OKBLUE}->{bcolors.END} {bcolors.FAIL}{matchsplit[1]}{bcolors.END}"
             
             if static.SHOWDIFF:
                 return result
