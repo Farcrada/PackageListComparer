@@ -277,6 +277,9 @@ def main(argv):
     print(f"""{bcolors.HEADER}Cleaning up...{bcolors.END}""")
     memory = [x for x in memory if x]
     memory.sort()
+    
+    if not static.REMCOLOR:
+        print(f"""{bcolors.WARNING}[CURRENT PACKAGE] -> [HOST VERSION] -> [TARGET VERSION]{bcolors.END}""")
     print(*memory, sep='\n')
 
 if __name__ == "__main__":
