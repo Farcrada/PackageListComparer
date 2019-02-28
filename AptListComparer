@@ -76,9 +76,9 @@ def checkForItemInList(item, list, secondpass = False) -> str:
     
     if not matching and ((static.TARGET and not secondpass) or static.ALLMISS or secondpass):
             if static.HOST:
-                return f"{check} {bcolors.OKBLUE}->{bcolors.END} {bcolors.HEADER}{itemsplit[1]}{bcolors.END} {bcolors.OKBLUE}->{bcolors.END} {bcolors.FAIL} MISSING{bcolors.END}"
-            else:
                 return f"{check} {bcolors.OKBLUE}->{bcolors.END} {bcolors.FAIL}MISSING{bcolors.END} {bcolors.OKBLUE}->{bcolors.END} {bcolors.FAIL}{itemsplit[1]}{bcolors.END}"
+            else:
+                return f"{check} {bcolors.OKBLUE}->{bcolors.END} {bcolors.HEADER}{itemsplit[1]}{bcolors.END} {bcolors.OKBLUE}->{bcolors.END} {bcolors.FAIL} MISSING{bcolors.END}"
     elif (not secondpass or static.HOST) and not static.REMDIFF:
         for match in matching:
             matchsplit = match.split(' ')
