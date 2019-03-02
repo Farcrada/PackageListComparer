@@ -157,8 +157,28 @@ def main(argv):
     Missing is shown as red and difference is shown as yellow.
 
 {bcolors.HEADER}Prep-work:{bcolors.END}
-    Run this command:
+    Run this command for systems with the apt package manager
+    (usually Debian based):
         apt --installed list > aptlist
+        
+    For pacman package manager (usually Arch based):
+        pacman -Q > aptlist
+        
+    For yum of dnf package manager (usually Red Hat based):
+        [yum|dnf] list installed > aptlist
+        
+        NOTE: The formatting from yum/dnf might be a bit off,
+        further testing is required.
+        
+    For zypper package manager (usually SUSE based):
+        zypper pa -i > aptlist
+        
+        NOTE: The formatting from zypper might be a bit off,
+        further testing is required.
+    
+    The way genlop (usually Gentoo based) outputs it's
+    installed lists is fundamentally different to others'.
+    Because of this extra development is needed.
     
     On your host and target system, append with either: "_one",
     or: "_two" respectively.
